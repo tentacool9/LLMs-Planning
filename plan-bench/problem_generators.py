@@ -212,7 +212,7 @@ class Instance_Generator():
         all_instances = []
         
         instance_file = f"{CWD}/{self.instances_template}"
-        domain = f"{CWD}/instances/{self.data['domain_name']}/{self.data['domain_file']}"
+        domain = f"{CWD}/instances/{self.data['domain_file']}"
         start, missing = self.add_existing_files_to_hash_set()
         # os.chdir("pddlgenerators/logistics/")
         c = missing.pop() if missing else start
