@@ -13,7 +13,7 @@ class Instance_Generator():
     def __init__(self, config_file):
         self.data = None
         self.read_config(config_file)
-        self.instances_template = f"./instances/{self.data['domain_name']}/{self.data['instance_dir']}/{self.data['instances_template']}"
+        self.instances_template = f"./instances/{self.data['instance_dir']}/{self.data['instances_template']}"
         self.label_json = f"./instances/{self.data['domain_name']}/{self.data['domain_name']}_all_labels.json"
         self.hashset = set()
         self.plan_hashset = set()
@@ -213,7 +213,7 @@ class Instance_Generator():
         
         instance_file = f"{CWD}/{self.instances_template}"
         print(instance_file)
-        exit()
+
         domain = f"{CWD}/instances/{self.data['domain_file']}"
         start, missing = self.add_existing_files_to_hash_set()
         # os.chdir("pddlgenerators/logistics/")
