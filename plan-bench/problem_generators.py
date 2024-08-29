@@ -65,8 +65,8 @@ class Instance_Generator():
 
         length = len(self.hashset)
         try:
-            for i in os.listdir(f"./instances/{self.data['domain_name']}/"):
-                f = open(f"./instances/{self.data['domain_name']}/{i}", "r")
+            for i in os.listdir(f"./instances/{self.data['domain_name']}/generated_basic"):
+                f = open(f"./instances/{self.data['domain_name']}/generated_basic/{i}", "r")
                 pddl = f.read()
                 to_add = self.convert_pddl(pddl)
                 if to_add in self.hashset:
