@@ -47,9 +47,9 @@ class Instance_Generator():
     def add_existing_files_to_hash_set(self):
         em = []
         count = 0
-        for i in os.listdir(f"./dataset/{self.data['domain_name']}/{self.data['domain']}/"):
+        for i in os.listdir(f"./dataset/{self.data['domain_name']}/{self.data['domain_name']}/"):
             try:
-                f = open(f"./dataset/{self.data['domain_name']}/{self.data['domain']}/instance-{count}.pddl", "r")
+                f = open(f"./dataset/{self.data['domain_name']}/{self.data['domain_name']}/instance-{count}.pddl", "r")
             except:
                 em.append(count)
                 count+=1
@@ -65,8 +65,8 @@ class Instance_Generator():
 
         length = len(self.hashset)
         try:
-            for i in os.listdir(f"./instances/{self.data['domain']}/"):
-                f = open(f"./instances/{self.data['domain']}/{i}", "r")
+            for i in os.listdir(f"./instances/{self.data['domain_name']}/"):
+                f = open(f"./instances/{self.data['domain_name']}/{i}", "r")
                 pddl = f.read()
                 to_add = self.convert_pddl(pddl)
                 if to_add in self.hashset:
@@ -122,10 +122,10 @@ class Instance_Generator():
 
 
     def gen_goal_directed_instances(self, n_instances, max_objs):
-        if self.data['domain'] == 'blocksworld':
+        if self.data['domain_name'] == 'blocksworld':
             self.gen_goal_directed_instances_blocksworld(n_instances, max_objs)
             
-        elif self.data['domain'] == 'logistics':
+        elif self.data['domain_name'] == 'logistics':
             self.gen_goal_directed_instances_logistics(n_instances)
         else:
             raise NotImplementedError
