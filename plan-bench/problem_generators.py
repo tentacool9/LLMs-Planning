@@ -466,7 +466,7 @@ if __name__ == '__main__':
     is_generalization = args.is_generalization
     n_instances = args.n_instances
     max_blocks = args.max_blocks
-    config_file = f'configs/{config_file}.json'
+    config_file = f'configs/{config_file}.yaml'
     assert os.path.exists(config_file), f'[-] Config file {config_file} does not exist'
     if is_generalization:
         ig = GeneralizationInstanceGenerator(config_file)
