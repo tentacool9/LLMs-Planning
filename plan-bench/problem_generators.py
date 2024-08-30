@@ -205,110 +205,110 @@ class Instance_Generator():
         # print('extended objects')
         return cities, airplanes, packages, city_size
 
-def gen_goal_directed_instances_logistics(self, n_instances, save_path):
-    import os
-    import json
-
-    CWD = os.getcwd()
-    CMD = "./pddlgenerators/logistics/logistics -a {} -c {} -s {} -p {}"
-    all_instances = []
+    def gen_goal_directed_instances_logistics(self, n_instances, save_path):
+        import os
+        import json
     
-    # Create directories under the save path
-    pddl_save_path = os.path.join(save_path, 'pddl_files')
-    json_save_path = os.path.join(save_path, 'json_labels')
-    os.makedirs(pddl_save_path, exist_ok=True)
-    os.makedirs(json_save_path, exist_ok=True)
+        CWD = os.getcwd()
+        CMD = "./pddlgenerators/logistics/logistics -a {} -c {} -s {} -p {}"
+        all_instances = []
+        
+        # Create directories under the save path
+        pddl_save_path = os.path.join(save_path, 'pddl_files')
+        json_save_path = os.path.join(save_path, 'json_labels')
+        os.makedirs(pddl_save_path, exist_ok=True)
+        os.makedirs(json_save_path, exist_ok=True)
+        
+        instance_file = f"{CWD}/{self.instances_template}"
+        print(instance_file)
     
-    instance_file = f"{CWD}/{self.instances_template}"
-    print(instance_file)
-
-    domain = f"{CWD}/instances/{self.data['domain_file']}"
-    start, missing = self.add_existing_files_to_hash_set()
-    c = missing.pop() if missing else start
+        domain = f"{CWD}/instances/{self.data['domain_file']}"
+        start, missing = self.add_existing_files_to_hash_set()
+        c = missing.pop() if missing else start
+        
+        all_instances = []
+        if n_instances:
+            n = n_instances
+        else:
+            n = self.data['n_instances'] + 1
+        global_count = 0
+        cities = 2
+        airplanes = 1
+        city_size = 1
+        packages = 1
+        while True:
+            if c > n:
+                break
+            instance_label = f"{cities}-{airplanes}-{city_size}-{packages}"
+            if instance_label in all_instances:
+                global_count += 1
+                continue
+            print("[INFO]: Instance label: ", instance_label)
+            cmd_exec = CMD.format(airplanes, cities, city_size, packages)
+            count = 0
+            while count < 50:
+                instance_file_path = instance_file.format(c)
+                save_instance_file_path = os.path.join(pddl_save_path, f"instance_{c}.pddl")
     
-    all_instances = []
-    if n_instances:
-        n = n_instances
-    else:
-        n = self.data['n_instances'] + 1
-    global_count = 0
-    cities = 2
-    airplanes = 1
-    city_size = 1
-    packages = 1
-    while True:
-        if c > n:
-            break
-        instance_label = f"{cities}-{airplanes}-{city_size}-{packages}"
-        if instance_label in all_instances:
-            global_count += 1
-            continue
-        print("[INFO]: Instance label: ", instance_label)
-        cmd_exec = CMD.format(airplanes, cities, city_size, packages)
-        count = 0
-        while count < 50:
-            instance_file_path = instance_file.format(c)
-            save_instance_file_path = os.path.join(pddl_save_path, f"instance_{c}.pddl")
-
-            with open(instance_file_path, "w+") as fd:
-                print(instance_file_path)
-                pddl = os.popen(cmd_exec).read()
-                hash_of_instance = self.convert_pddl(pddl)
-                if hash_of_instance in self.hashset:
-                    count += 1
-                    continue
-                count = 0
-                self.hashset.add(hash_of_instance)
-                fd.write(pddl)
-                
-                # Write to the new save path as well
-                with open(save_instance_file_path, "w+") as save_fd:
-                    save_fd.write(pddl)
-
-            inst_to_parse = instance_file_path
-            isvalid, plan = self.plan_length_validity(domain, inst_to_parse)
-            if isvalid:
-                plan_hash = plan
-                if plan_hash in self.plan_hashset:
-                    print("[-]: Same plan, skipping...")
+                with open(instance_file_path, "w+") as fd:
+                    print(instance_file_path)
+                    pddl = os.popen(cmd_exec).read()
+                    hash_of_instance = self.convert_pddl(pddl)
+                    if hash_of_instance in self.hashset:
+                        count += 1
+                        continue
+                    count = 0
+                    self.hashset.add(hash_of_instance)
+                    fd.write(pddl)
+                    
+                    # Write to the new save path as well
+                    with open(save_instance_file_path, "w+") as save_fd:
+                        save_fd.write(pddl)
+    
+                inst_to_parse = instance_file_path
+                isvalid, plan = self.plan_length_validity(domain, inst_to_parse)
+                if isvalid:
+                    plan_hash = plan
+                    if plan_hash in self.plan_hashset:
+                        print("[-]: Same plan, skipping...")
+                        self.hashset.remove(hash_of_instance)
+                        os.remove(inst_to_parse)
+                        os.remove(save_instance_file_path)  # Remove from save path as well
+                        continue
+                    self.plan_hashset.add(plan_hash)
+                    if instance_label in self.all_labels:
+                        self.all_labels[instance_label].append(c)
+                    else:
+                        self.all_labels[instance_label] = [c]
+                    if missing:
+                        c = missing.pop()
+                    else:
+                        if c < start:
+                            c = start
+                        else:
+                            c += 1
+                    
+                    # Save labels iteratively
+                    json_path = f"{self.data['domain_name']}_all_labels.json"
+                    save_json_path = os.path.join(json_save_path, f"{self.data['domain_name']}_all_labels.json")
+                    
+                    with open(json_path, 'w') as file:
+                        json.dump(self.all_labels, file)
+                    
+                    with open(save_json_path, 'w') as save_file:
+                        json.dump(self.all_labels, save_file)
+    
+                else:
                     self.hashset.remove(hash_of_instance)
                     os.remove(inst_to_parse)
                     os.remove(save_instance_file_path)  # Remove from save path as well
                     continue
-                self.plan_hashset.add(plan_hash)
-                if instance_label in self.all_labels:
-                    self.all_labels[instance_label].append(c)
-                else:
-                    self.all_labels[instance_label] = [c]
-                if missing:
-                    c = missing.pop()
-                else:
-                    if c < start:
-                        c = start
-                    else:
-                        c += 1
-                
-                # Save labels iteratively
-                json_path = f"{self.data['domain_name']}_all_labels.json"
-                save_json_path = os.path.join(json_save_path, f"{self.data['domain_name']}_all_labels.json")
-                
-                with open(json_path, 'w') as file:
-                    json.dump(self.all_labels, file)
-                
-                with open(save_json_path, 'w') as save_file:
-                    json.dump(self.all_labels, save_file)
-
-            else:
-                self.hashset.remove(hash_of_instance)
-                os.remove(inst_to_parse)
-                os.remove(save_instance_file_path)  # Remove from save path as well
-                continue
-
-        all_instances.append(instance_label)
-        cities, airplanes, packages, city_size = self.add_objects_logistics(cities, airplanes, packages, city_size)
-
-    print(f"[+]: A total of {c} instances have been generated")
-    os.chdir(CWD)
+    
+            all_instances.append(instance_label)
+            cities, airplanes, packages, city_size = self.add_objects_logistics(cities, airplanes, packages, city_size)
+    
+        print(f"[+]: A total of {c} instances have been generated")
+        os.chdir(CWD)
 
 class GeneralizationInstanceGenerator:
     def __init__(self, config_file):
