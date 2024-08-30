@@ -206,9 +206,6 @@ class Instance_Generator():
         return cities, airplanes, packages, city_size
 
     def gen_goal_directed_instances_logistics(self, n_instances, save_path):
-        import os
-        import json
-    
         CWD = os.getcwd()
         CMD = "./pddlgenerators/logistics/logistics -a {} -c {} -s {} -p {}"
         all_instances = []
