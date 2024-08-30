@@ -206,23 +206,27 @@ class Instance_Generator():
         return cities, airplanes, packages, city_size
 
     def gen_goal_directed_instances_logistics(self, n_instances, save_path):
+        import os
+        import json
+    
         CWD = os.getcwd()
         CMD = "./pddlgenerators/logistics/logistics -a {} -c {} -s {} -p {}"
         all_instances = []
-        
-        # Create directories under the save path
-        pddl_save_path = os.path.join(save_path, 'pddl_files')
-        json_save_path = os.path.join(save_path, 'json_labels')
-        os.makedirs(pddl_save_path, exist_ok=True)
-        os.makedirs(json_save_path, exist_ok=True)
-        
+    
+        # If save_path is provided, create directories under the save path
+        if save_path:
+            pddl_save_path = os.path.join(save_path, 'pddl_files')
+            json_save_path = os.path.join(save_path, 'json_labels')
+            os.makedirs(pddl_save_path, exist_ok=True)
+            os.makedirs(json_save_path, exist_ok=True)
+    
         instance_file = f"{CWD}/{self.instances_template}"
         print(instance_file)
     
         domain = f"{CWD}/instances/{self.data['domain_file']}"
         start, missing = self.add_existing_files_to_hash_set()
         c = missing.pop() if missing else start
-        
+    
         all_instances = []
         if n_instances:
             n = n_instances
@@ -245,7 +249,6 @@ class Instance_Generator():
             count = 0
             while count < 50:
                 instance_file_path = instance_file.format(c)
-                save_instance_file_path = os.path.join(pddl_save_path, f"instance_{c}.pddl")
     
                 with open(instance_file_path, "w+") as fd:
                     print(instance_file_path)
@@ -258,9 +261,11 @@ class Instance_Generator():
                     self.hashset.add(hash_of_instance)
                     fd.write(pddl)
                     
-                    # Write to the new save path as well
-                    with open(save_instance_file_path, "w+") as save_fd:
-                        save_fd.write(pddl)
+                    # If save_path is provided, write to the new save path as well
+                    if save_path:
+                        save_instance_file_path = os.path.join(pddl_save_path, f"instance_{c}.pddl")
+                        with open(save_instance_file_path, "w+") as save_fd:
+                            save_fd.write(pddl)
     
                 inst_to_parse = instance_file_path
                 isvalid, plan = self.plan_length_validity(domain, inst_to_parse)
@@ -270,7 +275,9 @@ class Instance_Generator():
                         print("[-]: Same plan, skipping...")
                         self.hashset.remove(hash_of_instance)
                         os.remove(inst_to_parse)
-                        os.remove(save_instance_file_path)  # Remove from save path as well
+                        # Remove from save path as well, if save_path is provided
+                        if save_path:
+                            os.remove(save_instance_file_path)
                         continue
                     self.plan_hashset.add(plan_hash)
                     if instance_label in self.all_labels:
@@ -284,21 +291,24 @@ class Instance_Generator():
                             c = start
                         else:
                             c += 1
-                    
+    
                     # Save labels iteratively
                     json_path = f"{self.data['domain_name']}_all_labels.json"
-                    save_json_path = os.path.join(json_save_path, f"{self.data['domain_name']}_all_labels.json")
-                    
                     with open(json_path, 'w') as file:
                         json.dump(self.all_labels, file)
-                    
-                    with open(save_json_path, 'w') as save_file:
-                        json.dump(self.all_labels, save_file)
+    
+                    # If save_path is provided, save labels to the new path as well
+                    if save_path:
+                        save_json_path = os.path.join(json_save_path, f"{self.data['domain_name']}_all_labels.json")
+                        with open(save_json_path, 'w') as save_file:
+                            json.dump(self.all_labels, save_file)
     
                 else:
                     self.hashset.remove(hash_of_instance)
                     os.remove(inst_to_parse)
-                    os.remove(save_instance_file_path)  # Remove from save path as well
+                    # Remove from save path as well, if save_path is provided
+                    if save_path:
+                        os.remove(save_instance_file_path)
                     continue
     
             all_instances.append(instance_label)
